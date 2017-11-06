@@ -221,8 +221,10 @@ cdef class Camera:
         cdef str image_format = str(self.properties['PixelFormat'])
         cdef str bits_per_pixel_prop = str(self.properties['PixelSize'])
         assert bits_per_pixel_prop.startswith('Bpp'), 'PixelSize property should start with "Bpp"'
-        assert image_format.startswith('Mono'), 'Only mono images allowed at this point'
-        assert not image_format.endswith('p'), 'Packed data not supported at this point'
+
+        # Support for color cameras - allow images other than Mono
+# assert image_format.startswith('Mono'), 'Only mono images allowed at this point'
+# assert not image_format.endswith('p'), 'Packed data not supported at this point'
 
         while self.camera.IsGrabbing():
 
@@ -248,7 +250,8 @@ cdef class Camera:
             assert not img.GetPaddingX(), 'Image padding not supported.'
             # TODO: Check GetOrientation to fix oritentation of image if required.
 
-            img_data = np.frombuffer((<char*>img.GetBuffer())[:img.GetImageSize()], dtype='uint'+bits_per_pixel_prop[3:])
+            # Support for color cameras
+            img_data = np.frombuffer((<char*>img.GetBuffer())[:img.GetImageSize()], dtype='uint8') #+bits_per_pixel_prop[3:])
 
             # TODO: How to handle multi-byte data here?
             img_data = img_data.reshape((img.GetHeight(), -1))
